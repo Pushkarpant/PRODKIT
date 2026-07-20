@@ -5,8 +5,8 @@ Thanks for your interest in contributing!
 ## Development Setup
 
 ```bash
-git clone https://github.com/prodkit/prodkit
-cd prodkit
+git clone https://github.com/Pushkarpant/PRODKIT
+cd PRODKIT
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"

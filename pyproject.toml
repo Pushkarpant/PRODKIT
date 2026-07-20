@@ -54,11 +54,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/prodkit/prodkit"
-Documentation = "https://github.com/prodkit/prodkit#readme"
-Repository = "https://github.com/prodkit/prodkit"
-Changelog = "https://github.com/prodkit/prodkit/blob/main/CHANGELOG.md"
-Issues = "https://github.com/prodkit/prodkit/issues"
+Homepage = "https://github.com/Pushkarpant/PRODKIT"
+Documentation = "https://github.com/Pushkarpant/PRODKIT#readme"
+Repository = "https://github.com/Pushkarpant/PRODKIT"
+Changelog = "https://github.com/Pushkarpant/PRODKIT/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Pushkarpant/PRODKIT/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/prodkit"]

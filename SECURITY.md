@@ -14,7 +14,7 @@ security reports with the highest priority.
 **Do not open a public issue for security vulnerabilities.**
 
 Report privately via GitHub Security Advisories:
-https://github.com/prodkit/prodkit/security/advisories/new
+https://github.com/Pushkarpant/PRODKIT/security/advisories/new
 
 You will receive an acknowledgement within 48 hours and a status update within
 7 days. We follow coordinated disclosure: we will work with you on a fix and
