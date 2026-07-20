@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "prodkit"
-version = "0.1.1"
+version = "0.1.3"
 description = "The production framework for FastAPI. One line. Production ready."
 readme = "README.md"
 license = "MIT"

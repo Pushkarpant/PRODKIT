@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-20
+
+### Changed
+- README updated (badge cleanup); republished so the PyPI project page shows
+  the current README.
+
 ## [0.1.1] - 2026-07-20
 
 ### Fixed
