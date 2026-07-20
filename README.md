@@ -18,8 +18,7 @@ endpoints, and gzip compression — configured to current best practice,
 hardened for production, and pleasant in development.
 
 [![CI](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml/badge.svg)](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/prodkit)](https://pypi.org/project/prodkit/)
-[![Python](https://img.shields.io/pypi/pyversions/prodkit)](https://pypi.org/project/prodkit/)
+[![PyPI]](https://pypi.org/project/prodkit/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
 
 ---
