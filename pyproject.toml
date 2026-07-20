@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "prodkit"
-version = "0.1.0"
+version = "0.1.1"
 description = "The production framework for FastAPI. One line. Production ready."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
-authors = [{ name = "ProdKit Contributors" }]
+authors = [{ name = "Pushkar Pant", email = "pantpushkar4@gmail.com" }]
 keywords = [
     "fastapi",
     "production",

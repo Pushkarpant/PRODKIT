@@ -20,7 +20,7 @@ hardened for production, and pleasant in development.
 [![CI](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml/badge.svg)](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/prodkit)](https://pypi.org/project/prodkit/)
 [![Python](https://img.shields.io/pypi/pyversions/prodkit)](https://pypi.org/project/prodkit/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
 
 ---
 
@@ -198,12 +198,12 @@ coverage, strict mypy, CI across Python 3.10–3.13.
 Roadmap: `prodkit doctor` CLI with a production-readiness score (v0.2),
 Prometheus metrics + Redis backends (v0.3), Dockerfile/nginx/CI generators
 (v0.4), public plugin SDK (v0.5), auth helpers (v0.6), stable API (v1.0).
-Full details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Full details in [docs/ARCHITECTURE.md](https://github.com/Pushkarpant/PRODKIT/blob/main/docs/ARCHITECTURE.md).
 
 ## Contributing
 
-Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
-Security reports: see [SECURITY.md](SECURITY.md) (never open a public issue).
+Contributions welcome — see [CONTRIBUTING.md](https://github.com/Pushkarpant/PRODKIT/blob/main/CONTRIBUTING.md).
+Security reports: see [SECURITY.md](https://github.com/Pushkarpant/PRODKIT/blob/main/SECURITY.md) (never open a public issue).
 
 ```bash
 git clone https://github.com/Pushkarpant/PRODKIT
@@ -215,7 +215,11 @@ pytest
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
+
+## Author
+
+**[Pushkar Pant](https://github.com/Pushkarpant)** — [pantpushkar4@gmail.com](mailto:pantpushkar4@gmail.com)
 
 ---
 

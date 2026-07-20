@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-20
+
+### Fixed
+- README links that were relative (LICENSE, docs/ARCHITECTURE.md,
+  CONTRIBUTING.md, SECURITY.md) now use absolute GitHub URLs so they work on
+  the PyPI project page.
+
+### Changed
+- Package author set to Pushkar Pant with contact email; author section added
+  to the README.
+
 ## [0.1.0] - 2026-07-16
 
 ### Added
