@@ -13,7 +13,7 @@ from typing import Any, ClassVar
 
 from starlette.responses import JSONResponse
 
-from prodkit.contracts.plugin import Check, Plugin
+from prodkit.contracts.plugin import Audit, Check, Plugin
 from prodkit.core.context import Context
 from prodkit.core.exceptions import ProdKitError
 
@@ -70,3 +70,14 @@ class HealthPlugin(Plugin):
         ctx.app.add_api_route(cfg.live_path, live, include_in_schema=False)
         ctx.app.add_api_route(cfg.health_path, health, include_in_schema=False)
         ctx.app.add_api_route(cfg.ready_path, ready, include_in_schema=False)
+
+    def doctor(self, ctx: Context) -> list[Audit]:
+        cfg = ctx.config.health
+        return [
+            Audit(
+                name="Health endpoints",
+                status="ok",
+                detail=f"{cfg.live_path} {cfg.health_path} {cfg.ready_path}",
+                weight=10,
+            )
+        ]

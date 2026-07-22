@@ -15,6 +15,7 @@ from prodkit.plugins.cors import CORSPlugin
 from prodkit.plugins.errors import ErrorsPlugin
 from prodkit.plugins.health import HealthPlugin
 from prodkit.plugins.logging import LoggingPlugin
+from prodkit.plugins.rate_limit import RateLimitPlugin
 from prodkit.plugins.request_id import RequestIDPlugin
 from prodkit.plugins.security import SecurityPlugin
 
@@ -28,6 +29,7 @@ __all__ = [
     "ErrorsPlugin",
     "HealthPlugin",
     "LoggingPlugin",
+    "RateLimitPlugin",
     "RequestIDPlugin",
     "SecurityPlugin",
     "builtin_plugins",
@@ -49,6 +51,8 @@ def builtin_plugins(config: ProdKitConfig) -> list[Plugin]:
         plugins.append(SecurityPlugin())
     if config.cors.enabled:
         plugins.append(CORSPlugin())
+    if config.rate_limit.enabled:
+        plugins.append(RateLimitPlugin())
     if config.compression.enabled:
         plugins.append(CompressionPlugin())
     return plugins

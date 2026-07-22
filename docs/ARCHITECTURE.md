@@ -495,10 +495,10 @@ proven *by* the built-ins before it's made public.
 - Docs: quickstart, configuration, per-plugin pages
 - 90% coverage, CI matrix, PyPI publish
 
-### v0.2.0 — Doctor + CLI foundation  *(doctor early: it's the adoption hook)*
+### v0.2.0 — Doctor + CLI foundation  *(doctor early: it's the adoption hook)* — ✅ shipped
 - `prodkit doctor` (+ `--strict` CI gate), `inspect`, `init`, `plugins`
 - Rate limiting (in-memory backend)
-- Response/error standardization hardening
+- Response/error standardization hardening (`instance` member, shared builder)
 
 ### v0.3.0 — Observability & backends
 - Prometheus metrics plugin

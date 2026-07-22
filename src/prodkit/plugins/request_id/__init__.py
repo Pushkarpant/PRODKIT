@@ -12,7 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
-from prodkit.contracts.plugin import PRIORITY_REQUEST_ID, Plugin
+from prodkit.contracts.plugin import PRIORITY_REQUEST_ID, Audit, Plugin
 from prodkit.core.context import Context
 
 request_id_var: ContextVar[str] = ContextVar("prodkit_request_id", default="")
@@ -59,3 +59,22 @@ class RequestIDPlugin(Plugin):
             header=cfg.header,
             trust_incoming=cfg.trust_incoming,
         )
+
+    def doctor(self, ctx: Context) -> list[Audit]:
+        cfg = ctx.config.request_id
+        return [
+            Audit(
+                name="Request IDs",
+                status="ok",
+                detail=(
+                    f"{cfg.header}; inbound "
+                    + ("trusted" if cfg.trust_incoming else "untrusted (generated)")
+                ),
+                recommendation=(
+                    "only set request_id.trust_incoming behind a proxy you control"
+                    if cfg.trust_incoming
+                    else ""
+                ),
+                weight=8,
+            )
+        ]

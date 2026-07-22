@@ -44,6 +44,7 @@ _TOGGLEABLE = (
     "security",
     "cors",
     "compression",
+    "rate_limit",
 )
 
 

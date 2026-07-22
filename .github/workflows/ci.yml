@@ -43,6 +43,17 @@ jobs:
         run: pip install "fastapi==0.110.*"
       - run: pytest
 
+  doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,cli]"
+      # Dogfood the adoption hook: the production-readiness score is a build gate.
+      - run: prodkit doctor --app examples.configured.main:app --strict --min-score 90
+
   build:
     runs-on: ubuntu-latest
     steps:

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-22
+
+### Added
+- **`prodkit` CLI** (install with `pip install prodkit[cli]`):
+  - `prodkit doctor` — production-readiness audit with a weighted 0–100 score;
+    `--strict --min-score N` turns it into a CI gate (non-zero exit below the
+    threshold).
+  - `prodkit inspect` — resolved config, active plugins, and middleware order.
+  - `prodkit plugins` — active plugins and the hooks each implements.
+  - `prodkit init [--example]` — scaffold a `prodkit.toml` (and starter app).
+- **`Plugin.doctor(ctx)` hook** returning `Audit` findings; implemented by every
+  built-in plugin. `Audit` (name, status `ok`/`warn`/`fail`, detail,
+  recommendation, weight) is exported from the top-level package.
+- Kernel doctor engine (`prodkit.core.doctor`) aggregating plugin audits with
+  config-level checks (environment, debug, disabled rate-limiting, low-entropy
+  secrets in the environment) into a score.
+- **Rate-limiting plugin** (`rate-limit`, off by default): in-memory
+  fixed-window per-IP limiting (`rate_limit={"default": "100/minute"}`),
+  returning `429 application/problem+json` with a `Retry-After` header. Logs a
+  per-process-backend warning (shared Redis backend arrives in v0.3).
+
+### Changed
+- Error responses now include an `instance` member (the request path). All
+  framework errors — including the rate limiter's 429 — share one
+  `problem_response` builder for a consistent RFC 9457 shape.
+
 ## [0.1.3] - 2026-07-20
 
 ### Changed

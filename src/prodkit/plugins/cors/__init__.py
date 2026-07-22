@@ -10,7 +10,7 @@ from typing import ClassVar
 
 from starlette.middleware.cors import CORSMiddleware
 
-from prodkit.contracts.plugin import PRIORITY_CORS, Plugin
+from prodkit.contracts.plugin import PRIORITY_CORS, Audit, Plugin
 from prodkit.core.context import Context
 from prodkit.core.exceptions import ProdKitConfigError
 
@@ -36,3 +36,21 @@ class CORSPlugin(Plugin):
             allow_headers=cfg.allow_headers,
             max_age=cfg.max_age,
         )
+
+    def doctor(self, ctx: Context) -> list[Audit]:
+        cfg = ctx.config.cors
+        wildcard = "*" in cfg.origins
+        risky = wildcard and cfg.allow_credentials
+        return [
+            Audit(
+                name="CORS",
+                status="fail" if risky else ("warn" if wildcard else "ok"),
+                detail=", ".join(cfg.origins) if cfg.origins else "no origins",
+                recommendation=(
+                    "list explicit origins; '*' with credentials lets any site call your API"
+                    if wildcard
+                    else ""
+                ),
+                weight=10,
+            )
+        ]

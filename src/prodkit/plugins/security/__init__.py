@@ -13,7 +13,7 @@ from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from prodkit.contracts.plugin import PRIORITY_SECURITY, Plugin
+from prodkit.contracts.plugin import PRIORITY_SECURITY, Audit, Plugin
 from prodkit.core.context import Context
 
 
@@ -76,3 +76,49 @@ class SecurityPlugin(Plugin):
             )
         if cfg.https_redirect:
             ctx.add_middleware(HTTPSRedirectMiddleware, priority=PRIORITY_SECURITY - 20)
+
+    def doctor(self, ctx: Context) -> list[Audit]:
+        cfg = ctx.config.security
+        is_prod = ctx.config.environment == "production"
+        audits = [
+            Audit(
+                name="Security headers",
+                status="ok",
+                detail="nosniff, X-Frame-Options, Referrer-Policy, Permissions-Policy",
+                weight=15,
+            ),
+            Audit(
+                name="HSTS",
+                status="ok" if cfg.hsts else ("warn" if is_prod else "ok"),
+                detail="enabled" if cfg.hsts else "disabled",
+                recommendation=(
+                    "enable HSTS in production once served over HTTPS"
+                    if (is_prod and not cfg.hsts)
+                    else ""
+                ),
+                weight=10,
+            ),
+            Audit(
+                name="Content-Security-Policy",
+                status="ok" if cfg.content_security_policy else "warn",
+                detail="set" if cfg.content_security_policy else "not set",
+                recommendation=(
+                    ""
+                    if cfg.content_security_policy
+                    else "set security.content_security_policy to mitigate XSS/injection"
+                ),
+                weight=10,
+            ),
+            Audit(
+                name="Trusted hosts",
+                status="ok" if cfg.trusted_hosts else "warn",
+                detail=", ".join(cfg.trusted_hosts) if cfg.trusted_hosts else "not restricted",
+                recommendation=(
+                    ""
+                    if cfg.trusted_hosts
+                    else "set security.trusted_hosts to block Host-header spoofing"
+                ),
+                weight=8,
+            ),
+        ]
+        return audits

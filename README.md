@@ -90,7 +90,9 @@ Production(app, environment="development")
 | ❤️ **Health endpoints** | `/health`, `/live` (liveness) and `/ready` (readiness — aggregates checks from every plugin, 503 until all pass). Kubernetes-native. |
 | 🌐 **CORS** | Explicit origins only; the wildcard-with-credentials footgun is refused at boot. |
 | 📦 **Compression** | Gzip for responses over 500 bytes. |
-| 🔌 **Plugin system** | Every feature above is a plugin. Write your own with 6 optional hooks. |
+| 🚦 **Rate limiting** | Opt-in per-IP limiting (`100/minute`), `429 problem+json` with `Retry-After`. In-memory backend (Redis in v0.3). |
+| 🩺 **`prodkit doctor`** | CLI production-readiness audit with a 0–100 score. `--strict` gates CI. |
+| 🔌 **Plugin system** | Every feature above is a plugin. Write your own with optional hooks incl. `doctor()`. |
 
 ## Configuration
 
@@ -179,6 +181,44 @@ Middleware registered by plugins carries an explicit integer priority, so
 the middleware onion is always correctly ordered no matter what order
 plugins load in (request-id outermost, compression innermost).
 
+## CLI — `prodkit doctor`
+
+Install the CLI extra and audit any `Production`-configured app:
+
+```bash
+pip install "prodkit[cli]"
+prodkit doctor --app main:app
+```
+
+```text
+              Production readiness
+  ┌───┬───────────────────────┬─────────────────────┬─────────────────────────┐
+  │ ✔ │ Security headers      │ nosniff, X-Frame ... │                         │
+  │ ✔ │ Structured logging    │ json @ INFO          │                         │
+  │ ✔ │ Error normalization   │ 500s opaque          │                         │
+  │ ⚠ │ Content-Security-Po.. │ not set              │ set a CSP to mitigate.. │
+  │ ⚠ │ Rate limiting         │ disabled             │ enable for public APIs  │
+  └───┴───────────────────────┴─────────────────────┴─────────────────────────┘
+  Production score: 88/100    2 warning(s)
+```
+
+Make it a CI quality gate — fail the build below a threshold:
+
+```bash
+prodkit doctor --app main:app --strict --min-score 90
+```
+
+Other commands:
+
+```bash
+prodkit inspect --app main:app   # resolved config, plugins, middleware order
+prodkit plugins --app main:app   # active plugins and the hooks each implements
+prodkit init --example           # scaffold prodkit.toml (+ starter main.py)
+```
+
+Every plugin contributes findings via its `doctor(ctx)` hook, so your own
+plugins score too.
+
 ## Plays Nice With Your App
 
 - **Same app object.** Routes, dependencies, and existing middleware keep
@@ -190,12 +230,13 @@ plugins load in (request-id outermost, compression innermost).
 
 ## Project Status
 
-**v0.1.0 — alpha.** Core kernel and seven built-in plugins, 60 tests, 98%
-coverage, strict mypy, CI across Python 3.10–3.13.
+**v0.2.0 — alpha.** Core kernel, eight built-in plugins (incl. rate-limiting),
+the `prodkit doctor` CLI with a production-readiness score, strict mypy, CI
+across Python 3.10–3.13.
 
-Roadmap: `prodkit doctor` CLI with a production-readiness score (v0.2),
-Prometheus metrics + Redis backends (v0.3), Dockerfile/nginx/CI generators
-(v0.4), public plugin SDK (v0.5), auth helpers (v0.6), stable API (v1.0).
+Roadmap: ✅ `prodkit doctor` CLI + rate limiting (v0.2), Prometheus metrics +
+Redis backends (v0.3), Dockerfile/nginx/CI generators (v0.4), public plugin SDK
+(v0.5), auth helpers (v0.6), stable API (v1.0).
 Full details in [docs/ARCHITECTURE.md](https://github.com/Pushkarpant/PRODKIT/blob/main/docs/ARCHITECTURE.md).
 
 ## Contributing

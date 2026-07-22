@@ -17,7 +17,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
-from prodkit.contracts.plugin import PRIORITY_LOGGING, Plugin
+from prodkit.contracts.plugin import PRIORITY_LOGGING, Audit, Plugin
 from prodkit.core.context import Context
 from prodkit.plugins.request_id import get_request_id
 
@@ -114,3 +114,21 @@ class LoggingPlugin(Plugin):
 
     def register_middleware(self, ctx: Context) -> None:
         ctx.add_middleware(AccessLogMiddleware, priority=PRIORITY_LOGGING)
+
+    def doctor(self, ctx: Context) -> list[Audit]:
+        cfg = ctx.config.logging
+        is_prod = ctx.config.environment == "production"
+        json_in_prod = cfg.format == "json"
+        return [
+            Audit(
+                name="Structured logging",
+                status="ok" if (json_in_prod or not is_prod) else "warn",
+                detail=f"{cfg.format} @ {cfg.level}",
+                recommendation=(
+                    "use logging.format=json in production for log aggregation"
+                    if (is_prod and not json_in_prod)
+                    else ""
+                ),
+                weight=10,
+            )
+        ]

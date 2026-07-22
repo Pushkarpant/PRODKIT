@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 if TYPE_CHECKING:
     from prodkit.core.context import Context
@@ -11,11 +11,39 @@ if TYPE_CHECKING:
 
 @dataclass
 class Check:
-    """A readiness/doctor check result."""
+    """A runtime readiness result, aggregated by ``/ready`` (health plugin)."""
 
     name: str
     passed: bool
     detail: str = ""
+
+
+AuditStatus = Literal["ok", "warn", "fail"]
+
+
+@dataclass
+class Audit:
+    """A single production-readiness finding reported by ``prodkit doctor``.
+
+    Distinct from :class:`Check`: ``Check`` answers "is this instance ready to
+    serve traffic right now?" (a boolean liveness/readiness signal), whereas an
+    ``Audit`` is a static configuration/security verdict with three states and a
+    weighted contribution to the overall production score.
+
+    Args:
+        name: Human-readable name of the thing being audited.
+        status: ``"ok"`` (full credit), ``"warn"`` (half credit — a soft
+            recommendation), or ``"fail"`` (no credit — a real gap).
+        detail: Short factual description of what was found.
+        recommendation: What to change to reach ``"ok"`` (shown for warn/fail).
+        weight: Relative contribution to the score. Higher = more important.
+    """
+
+    name: str
+    status: AuditStatus
+    detail: str = ""
+    recommendation: str = ""
+    weight: int = 10
 
 
 class Plugin:
@@ -46,6 +74,14 @@ class Plugin:
 
     def checks(self, ctx: Context) -> list[Check]:
         """Readiness checks, aggregated by the health plugin's /ready."""
+        return []
+
+    def doctor(self, ctx: Context) -> list[Audit]:
+        """Static production-readiness findings for ``prodkit doctor``.
+
+        Unlike :meth:`checks` (runtime readiness), these audit the resolved
+        configuration and contribute to the production score. Optional override.
+        """
         return []
 
 

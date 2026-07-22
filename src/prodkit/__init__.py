@@ -7,7 +7,7 @@ app = FastAPI()
 Production(app)
 """
 
-from prodkit.contracts.plugin import Check, Plugin
+from prodkit.contracts.plugin import Audit, Check, Plugin
 from prodkit.core.config import (
     CompressionConfig,
     CORSConfig,
@@ -15,6 +15,7 @@ from prodkit.core.config import (
     HealthConfig,
     LoggingConfig,
     ProdKitConfig,
+    RateLimitConfig,
     RequestIDConfig,
     SecurityConfig,
 )
@@ -33,9 +34,10 @@ from prodkit.plugins import builtin_plugins
 # root — the kernel itself never imports from prodkit.plugins.
 set_builtin_factory(builtin_plugins)
 
-__version__ = "0.1.3"
+__version__ = "0.2.0"
 
 __all__ = [
+    "Audit",
     "CORSConfig",
     "Check",
     "CompressionConfig",
@@ -50,6 +52,7 @@ __all__ = [
     "ProdKitConfigError",
     "ProdKitError",
     "Production",
+    "RateLimitConfig",
     "RequestIDConfig",
     "SecurityConfig",
     "ServiceNotFoundError",

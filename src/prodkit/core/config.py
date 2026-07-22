@@ -89,6 +89,13 @@ class CompressionConfig(_Section):
     minimum_size: int = 500  # bytes; don't waste CPU on tiny responses
 
 
+class RateLimitConfig(_Section):
+    enabled: bool = False  # opt-in: an unexpected 429 is worse than no limit
+    # "<count>/<second|minute|hour>", parsed and validated by the plugin.
+    default: str = "100/minute"
+    by: Literal["ip"] = "ip"  # v0.2 keys on client IP; per-user/route land later
+
+
 class ProdKitConfig(_Section):
     """Fully resolved, validated ProdKit configuration."""
 
@@ -101,6 +108,7 @@ class ProdKitConfig(_Section):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     cors: CORSConfig = Field(default_factory=CORSConfig)
     compression: CompressionConfig = Field(default_factory=CompressionConfig)
+    rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
 
 
 # Profile defaults: applied beneath toml/env/args. The one-liner must be
