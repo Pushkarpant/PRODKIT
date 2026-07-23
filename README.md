@@ -14,11 +14,21 @@ Production(app)
 
 That's it. Your app now has security headers, structured JSON logging with
 request-ID correlation, RFC 9457 error responses, Kubernetes-ready health
-endpoints, and gzip compression — configured to current best practice,
-hardened for production, and pleasant in development.
+endpoints, gzip compression, and opt-in rate limiting — configured to current
+best practice, hardened for production, and pleasant in development. Then run
+[`prodkit doctor`](#cli--prodkit-doctor) to score how production-ready it is.
 
+[![PyPI](https://img.shields.io/pypi/v/prodkit.svg)](https://pypi.org/project/prodkit/)
+[![Python](https://img.shields.io/pypi/pyversions/prodkit.svg)](https://pypi.org/project/prodkit/)
 [![CI](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml/badge.svg)](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
+
+---
+
+**Contents:** [Why](#why) · [Install](#installation) · [Quick Start](#quick-start) ·
+[What You Get](#what-you-get) · [Configuration](#configuration) ·
+[Plugins](#writing-a-plugin) · [CLI / doctor](#cli--prodkit-doctor) ·
+[Status & Roadmap](#project-status)
 
 ---
 
@@ -37,11 +47,13 @@ evolve, `pip install -U prodkit` updates every app you own.
 [**`pip install prodkit`**](https://pypi.org/project/prodkit/)
 
 ```bash
-pip install prodkit
+pip install prodkit           # the library
+pip install "prodkit[cli]"    # + the `prodkit doctor` CLI (typer + rich)
 ```
 
 Requires Python 3.10+ and FastAPI 0.110+. The base install depends only on
-FastAPI and Pydantic — nothing else.
+FastAPI and Pydantic — nothing else. Optional extras: `cli` (CLI),
+`brotli` (Brotli compression).
 
 ## Quick Start
 
@@ -69,7 +81,9 @@ x-content-type-options: nosniff
 x-frame-options: DENY
 strict-transport-security: max-age=63072000; includeSubDomains
 referrer-policy: strict-origin-when-cross-origin
-...
+permissions-policy: camera=(), microphone=(), geolocation=()
+x-xss-protection: 0
+content-type: application/json
 ```
 
 For local development, flip the profile — pretty console logs, debug error
@@ -111,6 +125,7 @@ Production(
     cors={"origins": ["https://app.example.com"]},   # dict = configure & enable
     compression=False,                                # bool = toggle
     security={"trusted_hosts": ["api.example.com"]},
+    rate_limit={"default": "100/minute"},             # opt-in per-IP limiting
 )
 ```
 
@@ -134,6 +149,10 @@ level = "INFO"
 [cors]
 enabled = true
 origins = ["https://app.example.com"]
+
+[rate_limit]
+enabled = true
+default = "100/minute"
 ```
 
 ### Fail-fast, refuse-unsafe
@@ -155,7 +174,7 @@ not warned about:
 ## Writing a Plugin
 
 ```python
-from prodkit import Check, Plugin, Production
+from prodkit import Audit, Check, Plugin, Production
 
 class DatabasePlugin(Plugin):
     name = "database"
@@ -167,13 +186,18 @@ class DatabasePlugin(Plugin):
     async def shutdown(self, ctx):
         await self.pool.close()
 
-    def checks(self, ctx):
+    def checks(self, ctx):                     # runtime readiness → /ready
         return [Check(name="database", passed=self.pool.is_alive())]
+
+    def doctor(self, ctx):                     # static audit → prodkit doctor
+        return [Audit(name="Database pool",
+                      status="ok", detail="connection pool configured")]
 
 Production(app, plugins=[DatabasePlugin()])
 ```
 
-Your check now shows up in `/ready` automatically. Plugins can declare
+Your `checks()` result now shows up in `/ready` automatically, and your
+`doctor()` findings roll into the `prodkit doctor` score. Plugins can declare
 `requires = ("other-plugin",)` and the kernel activates them in dependency
 order — cycles and missing dependencies fail at boot.
 
