@@ -254,7 +254,7 @@ plugins score too.
 
 ## Project Status
 
-**v0.2.0 — alpha.** Core kernel, eight built-in plugins (incl. rate-limiting),
+**v0.2.1 — alpha.** Core kernel, eight built-in plugins (incl. rate-limiting),
 the `prodkit doctor` CLI with a production-readiness score, strict mypy, CI
 across Python 3.10–3.13.
 

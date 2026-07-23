@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-23
+
+### Changed
+- README polish: PyPI/Python badges, table of contents, `prodkit[cli]` install
+  note, rate-limiting shown in the config examples, and a `doctor()` hook in the
+  plugin-authoring example. Docs-only release (no code changes).
+
 ## [0.2.0] - 2026-07-22
 
 ### Added
