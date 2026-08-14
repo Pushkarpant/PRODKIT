@@ -10,14 +10,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from prodkit.plugins.cache import CachePlugin
 from prodkit.plugins.compression import CompressionPlugin
 from prodkit.plugins.cors import CORSPlugin
 from prodkit.plugins.errors import ErrorsPlugin
 from prodkit.plugins.health import HealthPlugin
 from prodkit.plugins.logging import LoggingPlugin
+from prodkit.plugins.metrics import MetricsPlugin
 from prodkit.plugins.rate_limit import RateLimitPlugin
 from prodkit.plugins.request_id import RequestIDPlugin
 from prodkit.plugins.security import SecurityPlugin
+from prodkit.plugins.tracing import TracingPlugin
 
 if TYPE_CHECKING:
     from prodkit.contracts.plugin import Plugin
@@ -25,13 +28,16 @@ if TYPE_CHECKING:
 
 __all__ = [
     "CORSPlugin",
+    "CachePlugin",
     "CompressionPlugin",
     "ErrorsPlugin",
     "HealthPlugin",
     "LoggingPlugin",
+    "MetricsPlugin",
     "RateLimitPlugin",
     "RequestIDPlugin",
     "SecurityPlugin",
+    "TracingPlugin",
     "builtin_plugins",
 ]
 
@@ -55,4 +61,10 @@ def builtin_plugins(config: ProdKitConfig) -> list[Plugin]:
         plugins.append(RateLimitPlugin())
     if config.compression.enabled:
         plugins.append(CompressionPlugin())
+    if config.metrics.enabled:
+        plugins.append(MetricsPlugin())
+    if config.cache.enabled:
+        plugins.append(CachePlugin())
+    if config.tracing.enabled:
+        plugins.append(TracingPlugin())
     return plugins

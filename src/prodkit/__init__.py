@@ -9,15 +9,18 @@ Production(app)
 
 from prodkit.contracts.plugin import Audit, Check, Plugin
 from prodkit.core.config import (
+    CacheConfig,
     CompressionConfig,
     CORSConfig,
     ErrorsConfig,
     HealthConfig,
     LoggingConfig,
+    MetricsConfig,
     ProdKitConfig,
     RateLimitConfig,
     RequestIDConfig,
     SecurityConfig,
+    TracingConfig,
 )
 from prodkit.core.context import Context
 from prodkit.core.exceptions import (
@@ -34,17 +37,19 @@ from prodkit.plugins import builtin_plugins
 # root — the kernel itself never imports from prodkit.plugins.
 set_builtin_factory(builtin_plugins)
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 __all__ = [
     "Audit",
     "CORSConfig",
+    "CacheConfig",
     "Check",
     "CompressionConfig",
     "Context",
     "ErrorsConfig",
     "HealthConfig",
     "LoggingConfig",
+    "MetricsConfig",
     "Plugin",
     "PluginDependencyError",
     "PluginError",
@@ -56,5 +61,6 @@ __all__ = [
     "RequestIDConfig",
     "SecurityConfig",
     "ServiceNotFoundError",
+    "TracingConfig",
     "__version__",
 ]

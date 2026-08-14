@@ -45,6 +45,9 @@ _TOGGLEABLE = (
     "cors",
     "compression",
     "rate_limit",
+    "metrics",
+    "cache",
+    "tracing",
 )
 
 

@@ -52,8 +52,16 @@ pip install "prodkit[cli]"    # + the `prodkit doctor` CLI (typer + rich)
 ```
 
 Requires Python 3.10+ and FastAPI 0.110+. The base install depends only on
-FastAPI and Pydantic — nothing else. Optional extras: `cli` (CLI),
-`brotli` (Brotli compression).
+FastAPI and Pydantic — nothing else. Optional extras:
+
+| Extra | Adds |
+|---|---|
+| `cli` | `prodkit doctor` CLI (typer + rich) |
+| `metrics` | Prometheus `/metrics` endpoint |
+| `otel` | OpenTelemetry tracing (OTLP export) |
+| `redis` | Shared Redis backends (rate-limit, cache) |
+| `brotli` | Brotli compression |
+| `all` | Everything above |
 
 ## Quick Start
 
@@ -104,7 +112,10 @@ Production(app, environment="development")
 | ❤️ **Health endpoints** | `/health`, `/live` (liveness) and `/ready` (readiness — aggregates checks from every plugin, 503 until all pass). Kubernetes-native. |
 | 🌐 **CORS** | Explicit origins only; the wildcard-with-credentials footgun is refused at boot. |
 | 📦 **Compression** | Gzip for responses over 500 bytes. |
-| 🚦 **Rate limiting** | Opt-in per-IP limiting (`100/minute`), `429 problem+json` with `Retry-After`. In-memory backend (Redis in v0.3). |
+| 🚦 **Rate limiting** | Opt-in per-IP limiting (`100/minute`), `429 problem+json` with `Retry-After`. Memory or Redis backend (shared across workers). |
+| 📊 **Prometheus metrics** | Request count, latency histogram, in-flight gauge at `/metrics`. Route-template labels (bounded cardinality). `pip install prodkit[metrics]` |
+| 🗄️ **Cache service** | Memory (LRU + TTL) or Redis backend, published in the registry. `await cache.get(key)` / `.set(key, value, ttl=60)`. |
+| 🔭 **OpenTelemetry tracing** | Automatic request spans with W3C `traceparent` propagation. OTLP, console, or none exporter. `pip install prodkit[otel]` |
 | 🩺 **`prodkit doctor`** | CLI production-readiness audit with a 0–100 score. `--strict` gates CI. |
 | 🔌 **Plugin system** | Every feature above is a plugin. Write your own with optional hooks incl. `doctor()`. |
 
@@ -254,13 +265,13 @@ plugins score too.
 
 ## Project Status
 
-**v0.2.1 — alpha.** Core kernel, eight built-in plugins (incl. rate-limiting),
-the `prodkit doctor` CLI with a production-readiness score, strict mypy, CI
-across Python 3.10–3.13.
+**v0.3.0 — alpha.** Core kernel, eleven built-in plugins (metrics, cache, tracing,
+rate-limiting with Redis), the `prodkit doctor` CLI, strict mypy, CI across
+Python 3.10–3.13.
 
-Roadmap: ✅ `prodkit doctor` CLI + rate limiting (v0.2), Prometheus metrics +
-Redis backends (v0.3), Dockerfile/nginx/CI generators (v0.4), public plugin SDK
-(v0.5), auth helpers (v0.6), stable API (v1.0).
+Roadmap: ✅ `prodkit doctor` CLI + rate limiting (v0.2), ✅ Prometheus metrics +
+Redis backends + OpenTelemetry tracing (v0.3), Dockerfile/nginx/CI generators
+(v0.4), public plugin SDK (v0.5), auth helpers (v0.6), stable API (v1.0).
 Full details in [docs/ARCHITECTURE.md](https://github.com/Pushkarpant/PRODKIT/blob/main/docs/ARCHITECTURE.md).
 
 ## Contributing

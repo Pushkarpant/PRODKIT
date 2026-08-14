@@ -93,7 +93,37 @@ class RateLimitConfig(_Section):
     enabled: bool = False  # opt-in: an unexpected 429 is worse than no limit
     # "<count>/<second|minute|hour>", parsed and validated by the plugin.
     default: str = "100/minute"
-    by: Literal["ip"] = "ip"  # v0.2 keys on client IP; per-user/route land later
+    by: Literal["ip"] = "ip"  # keys on client IP; per-user/route land later
+    # "memory" is per-process; "redis" shares the limit across workers/hosts.
+    backend: Literal["memory", "redis"] = "memory"
+    redis_url: str = "redis://localhost:6379/0"
+    key_prefix: str = "prodkit:ratelimit:"
+
+
+class MetricsConfig(_Section):
+    enabled: bool = False  # opt-in: needs prodkit[metrics]
+    path: str = "/metrics"
+    buckets: list[float] | None = None  # None -> prometheus-client defaults
+    # Paths never measured (the metrics path itself is always excluded).
+    exclude_paths: list[str] = Field(default_factory=list)
+
+
+class CacheConfig(_Section):
+    enabled: bool = False  # opt-in: a service other code asks for, not middleware
+    backend: Literal["memory", "redis"] = "memory"
+    redis_url: str = "redis://localhost:6379/0"
+    default_ttl: int = 300  # seconds; 0 = no expiry
+    key_prefix: str = "prodkit:cache:"
+    max_entries: int = 1024  # memory backend LRU bound
+
+
+class TracingConfig(_Section):
+    enabled: bool = False  # opt-in: needs prodkit[otel]
+    service_name: str | None = None  # None -> the FastAPI app's title
+    exporter: Literal["otlp", "console", "none"] = "otlp"
+    # None defers to the standard OTEL_EXPORTER_OTLP_* environment variables.
+    endpoint: str | None = None
+    sample_rate: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class ProdKitConfig(_Section):
@@ -109,6 +139,9 @@ class ProdKitConfig(_Section):
     cors: CORSConfig = Field(default_factory=CORSConfig)
     compression: CompressionConfig = Field(default_factory=CompressionConfig)
     rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
+    metrics: MetricsConfig = Field(default_factory=MetricsConfig)
+    cache: CacheConfig = Field(default_factory=CacheConfig)
+    tracing: TracingConfig = Field(default_factory=TracingConfig)
 
 
 # Profile defaults: applied beneath toml/env/args. The one-liner must be

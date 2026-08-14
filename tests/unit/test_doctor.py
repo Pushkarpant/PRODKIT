@@ -52,11 +52,14 @@ class TestRunDoctor:
         rl = [a for a in report.audits if a.name == "Rate limiting"]
         assert rl and rl[0].status == "warn"
 
-    def test_enabled_rate_limit_is_ok(self):
+    def test_enabled_rate_limit_memory_warns_in_production(self):
         prod = build(environment="production", rate_limit={"default": "50/minute"})
         report = run_doctor(prod, environ={})
         rl = [a for a in report.audits if a.name == "Rate limiting"]
-        assert rl and rl[0].status == "ok"
+        # Memory backend warns in production (per-process only, not shared);
+        # the kernel's "disabled" warning is replaced by the plugin's own audit.
+        assert rl and rl[0].status == "warn"
+        assert "in-memory" in rl[0].detail
 
     def test_development_profile_warns_on_environment(self):
         prod = build(environment="development")

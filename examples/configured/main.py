@@ -23,9 +23,13 @@ Production(
     },
     cors={"origins": ["https://app.example.com"]},
     rate_limit={"default": "100/minute"},
+    metrics=True,
+    cache=True,
+    tracing={"exporter": "none"},  # none exporter for CI; use "otlp" in real deployments
 )
 
 
 @app.get("/hello")
 def hello() -> dict[str, str]:
     return {"message": "Hello from a hardened, production-ready app"}
+

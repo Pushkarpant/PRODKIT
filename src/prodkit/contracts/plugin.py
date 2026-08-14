@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, Literal
 
@@ -72,8 +73,12 @@ class Plugin:
     async def shutdown(self, ctx: Context) -> None:
         """Release resources gracefully."""
 
-    def checks(self, ctx: Context) -> list[Check]:
-        """Readiness checks, aggregated by the health plugin's /ready."""
+    def checks(self, ctx: Context) -> list[Check] | Awaitable[list[Check]]:
+        """Readiness checks, aggregated by the health plugin's /ready.
+
+        May be overridden as ``async def`` (e.g. to ping a backend); the
+        health plugin awaits awaitable results.
+        """
         return []
 
     def doctor(self, ctx: Context) -> list[Audit]:
@@ -89,6 +94,7 @@ class Plugin:
 PRIORITY_REQUEST_ID = 100
 PRIORITY_LOGGING = 200
 PRIORITY_ERRORS = 250
+PRIORITY_TRACING = 290
 PRIORITY_METRICS = 300
 PRIORITY_SECURITY = 400
 PRIORITY_CORS = 500

@@ -82,6 +82,50 @@ class TestEnvParsing:
         assert config.debug is False
 
 
+class TestObservabilitySections:
+    def test_new_sections_default_off(self):
+        config = resolve()
+        assert config.metrics.enabled is False
+        assert config.cache.enabled is False
+        assert config.tracing.enabled is False
+        assert config.rate_limit.backend == "memory"
+
+    def test_sections_resolve_from_env(self):
+        config = resolve(
+            environ={
+                "PRODKIT_METRICS__ENABLED": "true",
+                "PRODKIT_RATE_LIMIT__BACKEND": "redis",
+                "PRODKIT_CACHE__REDIS_URL": "redis://cache.internal:6379/1",
+            }
+        )
+        assert config.metrics.enabled is True
+        assert config.rate_limit.backend == "redis"
+        assert config.cache.redis_url == "redis://cache.internal:6379/1"
+
+    def test_sections_resolve_from_toml(self, tmp_path):
+        toml = tmp_path / "prodkit.toml"
+        toml.write_text(
+            '[metrics]\nenabled = true\npath = "/internal/metrics"\n'
+            '[tracing]\nenabled = true\nexporter = "console"\nsample_rate = 0.5\n'
+        )
+        config = resolve(toml_path=toml)
+        assert config.metrics.path == "/internal/metrics"
+        assert config.tracing.exporter == "console"
+        assert config.tracing.sample_rate == 0.5
+
+    def test_invalid_backend_rejected_with_named_key(self):
+        with pytest.raises(ProdKitConfigError, match=r"rate_limit\.backend"):
+            resolve({"rate_limit": {"backend": "memcached"}})
+
+    def test_unknown_key_in_new_section_rejected(self):
+        with pytest.raises(ProdKitConfigError, match=r"metrics\.pathh"):
+            resolve({"metrics": {"pathh": "/metrics"}})
+
+    def test_sample_rate_bounds_enforced(self):
+        with pytest.raises(ProdKitConfigError, match=r"tracing\.sample_rate"):
+            resolve({"tracing": {"sample_rate": 1.5}})
+
+
 class TestFailFast:
     def test_unknown_key_rejected(self):
         with pytest.raises(ProdKitConfigError, match=r"logging\.levle"):

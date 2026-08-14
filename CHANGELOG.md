@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-14
+
+### Added
+- **Prometheus metrics plugin** (`pip install prodkit[metrics]`): request
+  count, latency histogram, in-flight gauge. Exposed at `/metrics` (or a
+  custom path). Metrics use route templates as labels (bounded cardinality).
+  Dedicated `CollectorRegistry` per instance — no global-state collisions.
+- **Cache plugin** (`cache={...}`): a named cache service published in the
+  registry under `"cache"`. Memory (per-process LRU with TTL) and Redis
+  (shared across workers) backends. Values must be JSON-serializable.
+- **OpenTelemetry tracing plugin** (`pip install prodkit[otel]`): automatic
+  request spans with W3C `traceparent` propagation, configurable sampler
+  (`sample_rate`), and OTLP/console/none exporters. The `TracerProvider` is
+  published in the registry as `"tracer"`.
+- **Redis backend for rate limiting** (`rate_limit.backend="redis"`): shared
+  aligned fixed-window counters across all workers and hosts. Fails open on
+  Redis errors (availability > strict limiting). Readiness check via `/ready`.
+
+### Changed
+- CI installs `otel` and `metrics` extras for full test coverage.
+- `TracingMiddleware` now uses `context.attach()`/`detach()` for correct W3C
+  trace context propagation (previously passed unsupported `context` kwarg).
+- Dev dependencies now include `anyio` and `pytest-anyio` for async tests.
+
+
 ## [0.2.1] - 2026-07-23
 
 ### Changed
