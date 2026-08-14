@@ -183,7 +183,7 @@ class TracingPlugin(Plugin):
             provider.add_span_processor(simple_span_processor_cls(console_span_exporter_cls()))
         elif cfg.exporter == "otlp":
             try:
-                from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (  # type: ignore
+                from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
                     OTLPSpanExporter,
                 )
             except ImportError:
