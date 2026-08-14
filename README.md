@@ -231,7 +231,10 @@ prodkit init --example
 
 ProdKit merges configuration across **4 priority layers** (highest wins):
 
-$$\text{Python Args} \longrightarrow \text{Environment Vars} \longrightarrow \text{\texttt{prodkit.toml}} \longrightarrow \text{Profile Defaults}$$
+```text
+  Python Args  ──►  Environment Vars  ──►  prodkit.toml  ──►  Profile Defaults
+  (Highest)                                                               (Lowest)
+```
 
 <details open>
 <summary><b>⚙️ Choose Configuration Style (Click to tab)</b></summary>
@@ -317,7 +320,7 @@ Production(app, plugins=[DatabaseHealthPlugin()])
 ## 🛡️ Plays Nice With Your App
 
 - **Zero Lock-in**: Mutates/wraps the FastAPI instance. Remove `Production(app)` anytime to return to plain FastAPI.
-- **Lifespan Composition**: Your custom `@asynccontextmanager` lifespan is preserved and wrapped (Plugin startup $\to$ App lifespan $\to$ Plugin shutdown).
+- **Lifespan Composition**: Your custom `@asynccontextmanager` lifespan is preserved and wrapped (Plugin startup → App lifespan → Plugin shutdown).
 - **Your Code Wins**: If your route explicitly sets a header or error handler, your application code takes precedence.
 
 ---
