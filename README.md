@@ -20,7 +20,7 @@ Production(app)  # 👈 That's it. Production hardened.
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/astral-sh/ruff)
 
-[⚡ Quick Start](#-quick-start) · [📦 Installation](#-installation) · [✨ What You Get](#-what-you-get) · [🩺 CLI Doctor](#-cli--prodkit-doctor) · [🎛️ Configuration](#-configuration) · [🔌 Plugins](#-writing-a-plugin) · [🗺️ Roadmap](#-project-status--roadmap)
+[⚡ Quick Start](#quick-start) · [📦 Installation](#installation) · [✨ What You Get](#what-you-get) · [🩺 CLI Doctor](#cli-doctor) · [🎛️ Configuration](#configuration) · [🔌 Plugins](#plugins) · [🗺️ Roadmap](#roadmap)
 
 ---
 
@@ -52,7 +52,8 @@ FastAPI is a micro-framework and deliberately omits this. **ProdKit provides the
 
 ---
 
-## 💻 Interactive Demo
+<a id="quick-start"></a>
+## 💻 Interactive Quick Start
 
 ### 1️⃣ Run Your App
 ```python
@@ -113,6 +114,7 @@ content-type: application/json
 
 ---
 
+<a id="installation"></a>
 ## 📦 Installation
 
 ```bash
@@ -138,11 +140,12 @@ pip install "prodkit[all]"       # All available plugins and extras
 
 ---
 
+<a id="what-you-get"></a>
 ## ✨ What You Get Out of the Box
 
 ProdKit includes **11 modular built-in plugins**, organized with explicit middleware execution priorities:
 
-```
+```text
   100  RequestID          (Outer-most: generates/extracts X-Request-ID)
   200  Structured Logging (Correlates log lines with Request ID & timing)
   290  OpenTelemetry      (Request tracing spans & W3C context propagation)
@@ -177,6 +180,7 @@ ProdKit includes **11 modular built-in plugins**, organized with explicit middle
 
 ---
 
+<a id="cli-doctor"></a>
 ## 🩺 CLI — `prodkit doctor`
 
 Run static & runtime security audits against your app and get a **0–100 Production Score**:
@@ -227,6 +231,7 @@ prodkit init --example
 
 ---
 
+<a id="configuration"></a>
 ## 🎛️ Configuration
 
 ProdKit merges configuration across **4 priority layers** (highest wins):
@@ -282,6 +287,7 @@ export PRODKIT_METRICS__ENABLED=true
 
 ---
 
+<a id="plugins"></a>
 ## 🔌 Writing a Custom Plugin
 
 All features in ProdKit (including built-ins) are plugins implementing the `Plugin` contract.
@@ -325,6 +331,7 @@ Production(app, plugins=[DatabaseHealthPlugin()])
 
 ---
 
+<a id="roadmap"></a>
 ## 🗺️ Project Status & Roadmap
 
 | Version | Status | Highlights |
