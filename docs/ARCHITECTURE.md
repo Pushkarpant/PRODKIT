@@ -500,12 +500,12 @@ proven *by* the built-ins before it's made public.
 - Rate limiting (in-memory backend)
 - Response/error standardization hardening (`instance` member, shared builder)
 
-### v0.3.0 — Observability & backends
+### v0.3.0 — Observability & backends — ✅ shipped
 - Prometheus metrics plugin
 - Redis backend (cache service + rate-limit backend)
 - OpenTelemetry tracing (extra)
 
-### v0.4.0 — Generators
+### v0.4.0 — Generators — ✅ shipped
 - `prodkit generate docker|compose|nginx|github|env`
 - Generated files linted in CI (hadolint, nginx -t in container)
 

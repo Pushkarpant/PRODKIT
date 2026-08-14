@@ -32,4 +32,3 @@ Production(
 @app.get("/hello")
 def hello() -> dict[str, str]:
     return {"message": "Hello from a hardened, production-ready app"}
-

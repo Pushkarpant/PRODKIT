@@ -1,9 +1,10 @@
-"""The typer + rich CLI application: doctor, inspect, plugins, init."""
+"""The typer + rich CLI application: doctor, inspect, plugins, init, generate."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
 from rich.console import Console
@@ -14,10 +15,25 @@ from prodkit import __version__
 from prodkit.cli.loader import AppLoadError, load_production
 from prodkit.contracts.plugin import Plugin
 from prodkit.core.doctor import DoctorReport, run_doctor
+from prodkit.generators import (
+    ALL_GENERATORS,
+    BaseGenerator,
+    ComposeGenerator,
+    DockerGenerator,
+    EnvGenerator,
+    FileStatus,
+    GeneratedFile,
+    GeneratorContext,
+    GitHubGenerator,
+    NginxGenerator,
+)
+
+if TYPE_CHECKING:
+    from prodkit.core.production import Production
 
 app = typer.Typer(
     name="prodkit",
-    help="Audit and inspect the production-readiness of a FastAPI app.",
+    help="Audit, inspect, and generate production assets for a FastAPI app.",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -73,12 +89,22 @@ def main(
     """ProdKit CLI."""
 
 
-def _load(app_spec: str | None):  # type: ignore[no-untyped-def]
+def _load(app_spec: str | None) -> Production:
     try:
         return load_production(app_spec)
     except AppLoadError as exc:
         err_console.print(f"[red]error:[/] {exc}")
         raise typer.Exit(2) from None
+
+
+def _load_optional(app_spec: str | None) -> Production | None:
+    try:
+        return load_production(app_spec)
+    except AppLoadError as exc:
+        if app_spec:
+            err_console.print(f"[red]error:[/] {exc}")
+            raise typer.Exit(2) from None
+        return None
 
 
 # --------------------------------------------------------------------------
@@ -258,3 +284,145 @@ def init(
         else:
             main_path.write_text(_EXAMPLE_TEMPLATE, encoding="utf-8")
             console.print(f"[green]created[/] {main_path}")
+
+
+# --------------------------------------------------------------------------
+# generate
+# --------------------------------------------------------------------------
+generate_app = typer.Typer(
+    name="generate",
+    help="Generate production deployment assets (Dockerfile, compose, nginx, CI, env).",
+    no_args_is_help=True,
+)
+app.add_typer(generate_app)
+
+
+def _run_generators(
+    generators: list[type[BaseGenerator]],
+    path: Path,
+    app_spec: str | None,
+    force: bool,
+    dry_run: bool,
+    port: int,
+) -> None:
+    prod = _load_optional(app_spec)
+    ctx = GeneratorContext(
+        production=prod,
+        root_dir=path,
+        force=force,
+        dry_run=dry_run,
+        port=port,
+        app_spec=app_spec or "main:app",
+    )
+
+    table = Table(title="Generated deployment assets", expand=False)
+    table.add_column("Status", style="bold")
+    table.add_column("File", style="cyan")
+    table.add_column("Description", style="dim")
+
+    all_results: list[tuple[GeneratedFile, FileStatus]] = []
+    for gen_cls in generators:
+        gen = gen_cls()
+        results = gen.write(ctx)
+        all_results.extend(results)
+
+    status_labels: dict[FileStatus, str] = {
+        "created": "[green]created[/]",
+        "overwritten": "[blue]overwritten[/]",
+        "skipped": "[yellow]skipped[/]",
+        "dry-run": "[dim]dry-run[/]",
+    }
+
+    if path != Path("."):
+        console.print(f"[bold]Destination:[/] {path}")
+
+    for gen_file, status in all_results:
+        target_display = str(gen_file.path)
+        table.add_row(status_labels[status], target_display, gen_file.description)
+
+    console.print(table)
+
+    created_count = sum(1 for _, s in all_results if s in ("created", "overwritten"))
+    skipped_count = sum(1 for _, s in all_results if s == "skipped")
+
+    if dry_run:
+        console.print("[dim]Dry-run mode: no files were written to disk.[/]")
+    elif created_count > 0 and skipped_count == 0:
+        console.print(f"[green]Successfully generated {created_count} file(s).[/]")
+    elif skipped_count > 0:
+        console.print(
+            f"[yellow]{skipped_count} file(s) already exist and were skipped. "
+            "Use --force to overwrite.[/]"
+        )
+
+
+@generate_app.command(name="docker")
+def generate_docker(
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Directory to write files into."),
+    app_spec: str | None = _APP_OPTION,
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview files without writing."),
+    port: int = typer.Option(8000, "--port", help="Application container port."),
+) -> None:
+    """Generate a multi-stage, non-root Dockerfile and .dockerignore."""
+    _run_generators([DockerGenerator], path, app_spec, force, dry_run, port)
+
+
+@generate_app.command(name="compose")
+def generate_compose(
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Directory to write files into."),
+    app_spec: str | None = _APP_OPTION,
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview files without writing."),
+    port: int = typer.Option(8000, "--port", help="Application container port."),
+) -> None:
+    """Generate a docker-compose.yml file with services and healthchecks."""
+    _run_generators([ComposeGenerator], path, app_spec, force, dry_run, port)
+
+
+@generate_app.command(name="nginx")
+def generate_nginx(
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Directory to write files into."),
+    app_spec: str | None = _APP_OPTION,
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview files without writing."),
+    port: int = typer.Option(8000, "--port", help="Target upstream application port."),
+) -> None:
+    """Generate a production-hardened Nginx reverse-proxy configuration."""
+    _run_generators([NginxGenerator], path, app_spec, force, dry_run, port)
+
+
+@generate_app.command(name="github")
+def generate_github(
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Directory to write files into."),
+    app_spec: str | None = _APP_OPTION,
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview files without writing."),
+    port: int = typer.Option(8000, "--port", help="Application port."),
+) -> None:
+    """Generate a GitHub Actions CI workflow (.github/workflows/ci.yml)."""
+    _run_generators([GitHubGenerator], path, app_spec, force, dry_run, port)
+
+
+@generate_app.command(name="env")
+def generate_env(
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Directory to write files into."),
+    app_spec: str | None = _APP_OPTION,
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview files without writing."),
+    port: int = typer.Option(8000, "--port", help="Application port."),
+) -> None:
+    """Generate a documented .env.example with all configuration keys."""
+    _run_generators([EnvGenerator], path, app_spec, force, dry_run, port)
+
+
+@generate_app.command(name="all")
+def generate_all(
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Directory to write files into."),
+    app_spec: str | None = _APP_OPTION,
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview files without writing."),
+    port: int = typer.Option(8000, "--port", help="Application container port."),
+) -> None:
+    """Generate all deployment and infrastructure assets at once."""
+    _run_generators(list(ALL_GENERATORS), path, app_spec, force, dry_run, port)

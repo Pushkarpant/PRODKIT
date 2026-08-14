@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-14
+
+### Added
+- **`prodkit generate` CLI suite**:
+  - `prodkit generate docker`: hardened, multi-stage non-root Dockerfile and `.dockerignore`.
+  - `prodkit generate compose`: `docker-compose.yml` with healthchecks, environment mapping, and conditional Redis service detection.
+  - `prodkit generate nginx`: production reverse-proxy config with W3C traceparent pass-through, request-ID correlation, and gzip compression.
+  - `prodkit generate github`: `.github/workflows/ci.yml` with matrix testing across Python 3.10-3.13, linting, typechecking, coverage, and `prodkit doctor --strict` CI gate.
+  - `prodkit generate env`: `.env.example` template covering all `ProdKitConfig` parameters and defaults.
+  - `prodkit generate all`: single-command scaffolding for all deployment assets.
+- **Generator Engine** (`prodkit.generators`): decoupled generator classes (`DockerGenerator`, `ComposeGenerator`, `NginxGenerator`, `GitHubGenerator`, `EnvGenerator`) supporting programmatic rendering, `--dry-run` previews, `--force` overwriting, and context-aware templating.
+
 ## [0.3.0] - 2026-08-14
 
 ### Added

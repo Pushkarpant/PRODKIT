@@ -212,9 +212,29 @@ prodkit doctor --app main:app --strict --min-score 90
 ```
 
 <details>
-<summary><b>🛠️ More CLI Commands (<code>inspect</code>, <code>plugins</code>, <code>init</code>)</b></summary>
+<summary><b>🛠️ More CLI Commands (<code>generate</code>, <code>inspect</code>, <code>plugins</code>, <code>init</code>)</b></summary>
 
 <br/>
+
+#### 🚀 Infrastructure & Deployment Generators (`prodkit generate`)
+Scaffold production-grade deployment assets tailored to your application's resolved configuration:
+
+```bash
+# Generate all deployment assets at once
+prodkit generate all
+
+# Or generate specific infrastructure assets:
+prodkit generate docker     # Multi-stage, non-root Dockerfile + .dockerignore
+prodkit generate compose    # docker-compose.yml (auto-includes Redis if configured)
+prodkit generate nginx      # Hardened Nginx reverse-proxy configuration
+prodkit generate github     # .github/workflows/ci.yml with prodkit doctor CI gate
+prodkit generate env        # .env.example with all configuration keys & defaults
+
+# Preview changes without writing to disk
+prodkit generate all --dry-run
+```
+
+#### 🔍 Introspection & Project Scaffolding
 
 ```bash
 # View resolved configuration, active plugins, and middleware execution stack:
@@ -338,9 +358,9 @@ Production(app, plugins=[DatabaseHealthPlugin()])
 |---|---|---|
 | **v0.1.0** | ✅ Released | Core kernel, security headers, JSON logs, RFC 9457 error normalization, `/health` |
 | **v0.2.0** | ✅ Released | `prodkit doctor` CLI, readiness score, in-memory rate limiting |
-| **v0.3.0** | ✅ **Current** | **Prometheus metrics, Redis backends, OpenTelemetry tracing, Cache service** |
-| **v0.4.0** | 🚧 Next | `prodkit generate` (Dockerfile, nginx, docker-compose, GitHub Actions CI) |
-| **v0.5.0** | 📅 Planned | Public Plugin SDK & Ecosystem (`prodkit-sentry`, entry-point discovery) |
+| **v0.3.0** | ✅ Released | Prometheus metrics, Redis backends, OpenTelemetry tracing, Cache service |
+| **v0.4.0** | ✅ **Current** | **`prodkit generate` (Dockerfile, nginx, docker-compose, GitHub Actions CI, .env)** |
+| **v0.5.0** | 🚧 Next | Public Plugin SDK & Ecosystem (`prodkit-sentry`, entry-point discovery) |
 | **v1.0.0** | 🎯 Milestone | Frozen Public API, LTS release, Production case studies |
 
 ---
