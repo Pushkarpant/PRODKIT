@@ -20,7 +20,7 @@ Production(app)  # 👈 That's it. Production hardened.
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/astral-sh/ruff)
 
-[⚡ Quick Start](#quick-start) · [📦 Installation](#installation) · [✨ What You Get](#what-you-get) · [🩺 CLI Doctor](#cli-doctor) · [🎛️ Configuration](#configuration) · [🔌 Plugins](#plugins) · [🗺️ Roadmap](#roadmap)
+[⚡ Quick Start](#quick-start) · [📦 Installation](#installation) · [✨ What You Get](#what-you-get) · [🩺 CLI Doctor](#cli-doctor) · [🚀 Generators](#generators) · [🎛️ Configuration](#configuration) · [🔌 Plugins](#plugins) · [🗺️ Roadmap](#roadmap)
 
 ---
 
@@ -131,7 +131,7 @@ pip install "prodkit[all]"       # All available plugins and extras
 
 | Extra | Adds | Dependencies |
 |---|---|---|
-| `cli` | `prodkit doctor`, `inspect`, `init` commands | `typer`, `rich` |
+| `cli` | `prodkit doctor`, `generate`, `inspect`, `init` | `typer`, `rich` |
 | `metrics` | Prometheus metrics endpoint (`/metrics`) | `prometheus-client` |
 | `otel` | W3C distributed tracing with OpenTelemetry | `opentelemetry-api`, `opentelemetry-sdk` |
 | `redis` | Multi-worker rate limiting & distributed cache | `redis` / `fakeredis` |
@@ -211,30 +211,50 @@ Enforce production standards in GitHub Actions or GitLab CI:
 prodkit doctor --app main:app --strict --min-score 90
 ```
 
-<details>
-<summary><b>🛠️ More CLI Commands (<code>generate</code>, <code>inspect</code>, <code>plugins</code>, <code>init</code>)</b></summary>
+---
 
-<br/>
+<a id="generators"></a>
+## 🚀 Infrastructure & Deployment Generators (`prodkit generate`)
 
-#### 🚀 Infrastructure & Deployment Generators (`prodkit generate`)
-Scaffold production-grade deployment assets tailored to your application's resolved configuration:
+Scaffold production-grade deployment assets tailored to your application's resolved configuration and active plugins:
 
 ```bash
 # Generate all deployment assets at once
 prodkit generate all
 
-# Or generate specific infrastructure assets:
-prodkit generate docker     # Multi-stage, non-root Dockerfile + .dockerignore
-prodkit generate compose    # docker-compose.yml (auto-includes Redis if configured)
-prodkit generate nginx      # Hardened Nginx reverse-proxy configuration
-prodkit generate github     # .github/workflows/ci.yml with prodkit doctor CI gate
-prodkit generate env        # .env.example with all configuration keys & defaults
-
-# Preview changes without writing to disk
+# Preview generated assets without writing to disk
 prodkit generate all --dry-run
 ```
 
-#### 🔍 Introspection & Project Scaffolding
+```text
+                          Generated deployment assets                          
+┌─────────┬──────────────────────────┬────────────────────────────────────────┐
+│ Status  │ File                     │ Description                            │
+├─────────┼──────────────────────────┼────────────────────────────────────────┤
+│ created │ Dockerfile               │ Multi-stage, non-root production image │
+│ created │ .dockerignore            │ Docker build ignore file               │
+│ created │ docker-compose.yml       │ Multi-service Compose definition       │
+│ created │ nginx.conf               │ Hardened Nginx reverse-proxy           │
+│ created │ .github/workflows/ci.yml │ CI quality & testing with doctor gate  │
+│ created │ .env.example             │ Environment configuration template     │
+└─────────┴──────────────────────────┴────────────────────────────────────────┘
+Successfully generated 6 file(s).
+```
+
+### 🧩 Individual Generators
+
+| Command | Generated Artifact | Key Features |
+|---|---|---|
+| `prodkit generate docker` | `Dockerfile`, `.dockerignore` | Multi-stage builder, non-root `appuser:10001`, `HEALTHCHECK`, `uvicorn` workers |
+| `prodkit generate compose` | `docker-compose.yml` | Healthcheck dependencies, auto-detects Redis services and network volumes |
+| `prodkit generate nginx` | `nginx.conf` | Reverse-proxy, W3C `traceparent` propagation, `X-Request-ID`, gzip compression |
+| `prodkit generate github` | `.github/workflows/ci.yml` | Python 3.10–3.13 matrix, `ruff`, `mypy --strict`, `pytest`, `prodkit doctor` gate |
+| `prodkit generate env` | `.env.example` | Dynamic schema documentation with defaults and production notes |
+
+<details>
+<summary><b>🛠️ More CLI Commands (<code>inspect</code>, <code>plugins</code>, <code>init</code>)</b></summary>
+
+<br/>
 
 ```bash
 # View resolved configuration, active plugins, and middleware execution stack:
