@@ -37,7 +37,7 @@ from prodkit.plugins import builtin_plugins
 # root — the kernel itself never imports from prodkit.plugins.
 set_builtin_factory(builtin_plugins)
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 __all__ = [
     "Audit",
