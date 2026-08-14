@@ -1,89 +1,86 @@
-# ProdKit
+<div align="center">
 
-> **One line. Production ready.**
+# ⚡ ProdKit
 
-The production framework for [FastAPI](https://fastapi.tiangolo.com/).
+### *One line. Production ready.*
+
+The production engine for **[FastAPI](https://fastapi.tiangolo.com/)**.
 
 ```python
 from fastapi import FastAPI
 from prodkit import Production
 
 app = FastAPI()
-Production(app)
+Production(app)  # 👈 That's it. Production hardened.
 ```
 
-That's it. Your app now has security headers, structured JSON logging with
-request-ID correlation, RFC 9457 error responses, Kubernetes-ready health
-endpoints, gzip compression, and opt-in rate limiting — configured to current
-best practice, hardened for production, and pleasant in development. Then run
-[`prodkit doctor`](#cli--prodkit-doctor) to score how production-ready it is.
+[![PyPI Version](https://img.shields.io/pypi/v/prodkit.svg?style=for-the-badge&color=blue)](https://pypi.org/project/prodkit/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/prodkit.svg?style=for-the-badge&color=snake)](https://pypi.org/project/prodkit/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/Pushkarpant/PRODKIT/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
+[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/astral-sh/ruff)
 
-[![PyPI](https://img.shields.io/pypi/v/prodkit.svg)](https://pypi.org/project/prodkit/)
-[![Python](https://img.shields.io/pypi/pyversions/prodkit.svg)](https://pypi.org/project/prodkit/)
-[![CI](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml/badge.svg)](https://github.com/Pushkarpant/PRODKIT/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
+[⚡ Quick Start](#-quick-start) · [📦 Installation](#-installation) · [✨ What You Get](#-what-you-get) · [🩺 CLI Doctor](#-cli--prodkit-doctor) · [🎛️ Configuration](#-configuration) · [🔌 Plugins](#-writing-a-plugin) · [🗺️ Roadmap](#-project-status--roadmap)
 
 ---
 
-**Contents:** [Why](#why) · [Install](#installation) · [Quick Start](#quick-start) ·
-[What You Get](#what-you-get) · [Configuration](#configuration) ·
-[Plugins](#writing-a-plugin) · [CLI / doctor](#cli--prodkit-doctor) ·
-[Status & Roadmap](#project-status)
+</div>
 
----
+<br/>
 
-## Why
+## 🎯 The Problem & Solution
 
-Every production FastAPI service re-implements the same ~500 lines of glue:
-middleware ordering, security headers, structured logging, health checks,
-error normalization, graceful shutdown. FastAPI deliberately doesn't ship
-this — it's a micro framework. **ProdKit is the batteries.**
+<details open>
+<summary><b>💡 Why does ProdKit exist? (Click to toggle comparison)</b></summary>
 
-And unlike a project template, ProdKit is a library: when best practices
-evolve, `pip install -U prodkit` updates every app you own.
+<br/>
 
-## Installation
+Every FastAPI service that goes to production re-implements the exact same **~500 lines of glue code**: security headers, JSON access logs, request-ID correlation, RFC 9457 error normalization, Kubernetes health probes, CORS safety, and rate-limiting. 
 
-[**`pip install prodkit`**](https://pypi.org/project/prodkit/)
+FastAPI is a micro-framework and deliberately omits this. **ProdKit provides the production batteries in a single import.**
 
-```bash
-pip install prodkit           # the library
-pip install "prodkit[cli]"    # + the `prodkit doctor` CLI (typer + rich)
-```
-
-Requires Python 3.10+ and FastAPI 0.110+. The base install depends only on
-FastAPI and Pydantic — nothing else. Optional extras:
-
-| Extra | Adds |
+| Without ProdKit ❌ | With ProdKit (`Production(app)`) ✅ |
 |---|---|
-| `cli` | `prodkit doctor` CLI (typer + rich) |
-| `metrics` | Prometheus `/metrics` endpoint |
-| `otel` | OpenTelemetry tracing (OTLP export) |
-| `redis` | Shared Redis backends (rate-limit, cache) |
-| `brotli` | Brotli compression |
-| `all` | Everything above |
+| 🔴 Plain error 500s leak python stack traces to clients | 🛡️ RFC 9457 `problem+json` — 500s opaque to users, traced in logs |
+| 🔴 Ad-hoc log lines without correlation IDs | 📋 Structured JSON logs with auto-injected `X-Request-ID` |
+| 🔴 Missing security headers (vulnerable to clickjacking/sniffing) | 🔒 OWASP-hardened headers (`nosniff`, `DENY`, HSTS, CSP) |
+| 🔴 Wildcard CORS combined with credentials footgun | 🚫 Refuses unsafe prod configs at startup with named key error |
+| 🔴 Hand-rolled `/health` endpoints that don't check dependencies | 🏥 Native `/health`, `/live`, and `/ready` with dependency checks |
+| 🔴 Hard to update when security standards evolve | 🔄 `pip install -U prodkit` upgrades all your apps in seconds |
 
-## Quick Start
+</details>
 
+---
+
+## 💻 Interactive Demo
+
+### 1️⃣ Run Your App
 ```python
+# main.py
 from fastapi import FastAPI
 from prodkit import Production
 
-app = FastAPI()
-Production(app)                      # production profile by default
+app = FastAPI(title="Payment Service")
+Production(app)  # Auto-configures production profile
 
-@app.get("/hello")
-def hello():
-    return {"message": "hello"}
+
+@app.get("/charge")
+def charge():
+    return {"status": "success"}
 ```
 
 ```bash
 uvicorn main:app
 ```
 
-```text
-$ curl -i localhost:8000/hello
+### 2️⃣ Inspect Production Headers & Request Tracing
+
+<details open>
+<summary><b>🔍 <code>curl -i http://localhost:8000/charge</code> (Click to inspect output)</b></summary>
+
+```http
 HTTP/1.1 200 OK
+content-type: application/json
 x-request-id: 26fdc49565614c2a9ef1a3b8d4e0f712
 x-content-type-options: nosniff
 x-frame-options: DENY
@@ -91,210 +88,273 @@ strict-transport-security: max-age=63072000; includeSubDomains
 referrer-policy: strict-origin-when-cross-origin
 permissions-policy: camera=(), microphone=(), geolocation=()
 x-xss-protection: 0
+
+{"status":"success"}
+```
+</details>
+
+<details>
+<summary><b>🏥 <code>curl -i http://localhost:8000/ready</code> (Kubernetes Readiness Check)</b></summary>
+
+```http
+HTTP/1.1 200 OK
 content-type: application/json
+
+{
+  "status": "ready",
+  "checks": [
+    { "name": "request-id", "passed": true },
+    { "name": "logging", "passed": true },
+    { "name": "security", "passed": true }
+  ]
+}
+```
+</details>
+
+---
+
+## 📦 Installation
+
+```bash
+# Base framework (zero extra dependencies)
+pip install prodkit
+
+# Recommended extras
+pip install "prodkit[cli]"       # Includes `prodkit doctor` CLI (typer + rich)
+pip install "prodkit[metrics]"   # Prometheus /metrics endpoint
+pip install "prodkit[otel]"      # OpenTelemetry tracing
+pip install "prodkit[redis]"     # Distributed Redis rate-limiting & cache
+pip install "prodkit[all]"       # All available plugins and extras
 ```
 
-For local development, flip the profile — pretty console logs, debug error
-details, no HSTS:
+| Extra | Adds | Dependencies |
+|---|---|---|
+| `cli` | `prodkit doctor`, `inspect`, `init` commands | `typer`, `rich` |
+| `metrics` | Prometheus metrics endpoint (`/metrics`) | `prometheus-client` |
+| `otel` | W3C distributed tracing with OpenTelemetry | `opentelemetry-api`, `opentelemetry-sdk` |
+| `redis` | Multi-worker rate limiting & distributed cache | `redis` / `fakeredis` |
+| `brotli` | High-ratio Brotli response compression | `brotli` |
+| `all` | Everything above | All optional extras |
 
-```python
-Production(app, environment="development")
-```
+---
 
-## What You Get
+## ✨ What You Get Out of the Box
 
-| Feature | Details |
-|---|---|
-| 🆔 **Request IDs** | `X-Request-ID` on every response, propagated into every log line. Inbound IDs untrusted by default. |
-| 📋 **Structured logging** | One JSON object per request in production (Datadog/Loki/CloudWatch-ready); pretty console logs in development. |
-| 🛡️ **Security headers** | OWASP-aligned: `nosniff`, `X-Frame-Options`, HSTS, `Referrer-Policy`, `Permissions-Policy`. Your own headers always win. |
-| 🚨 **Error normalization** | [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) `problem+json` responses. Unhandled 500s are **opaque to clients** — the traceback goes to logs, correlated by request ID. |
-| ❤️ **Health endpoints** | `/health`, `/live` (liveness) and `/ready` (readiness — aggregates checks from every plugin, 503 until all pass). Kubernetes-native. |
-| 🌐 **CORS** | Explicit origins only; the wildcard-with-credentials footgun is refused at boot. |
-| 📦 **Compression** | Gzip for responses over 500 bytes. |
-| 🚦 **Rate limiting** | Opt-in per-IP limiting (`100/minute`), `429 problem+json` with `Retry-After`. Memory or Redis backend (shared across workers). |
-| 📊 **Prometheus metrics** | Request count, latency histogram, in-flight gauge at `/metrics`. Route-template labels (bounded cardinality). `pip install prodkit[metrics]` |
-| 🗄️ **Cache service** | Memory (LRU + TTL) or Redis backend, published in the registry. `await cache.get(key)` / `.set(key, value, ttl=60)`. |
-| 🔭 **OpenTelemetry tracing** | Automatic request spans with W3C `traceparent` propagation. OTLP, console, or none exporter. `pip install prodkit[otel]` |
-| 🩺 **`prodkit doctor`** | CLI production-readiness audit with a 0–100 score. `--strict` gates CI. |
-| 🔌 **Plugin system** | Every feature above is a plugin. Write your own with optional hooks incl. `doctor()`. |
-
-## Configuration
-
-Everything is configurable through four layers (highest wins):
+ProdKit includes **11 modular built-in plugins**, organized with explicit middleware execution priorities:
 
 ```
-Python args  >  environment variables  >  prodkit.toml  >  profile defaults
+  100  RequestID          (Outer-most: generates/extracts X-Request-ID)
+  200  Structured Logging (Correlates log lines with Request ID & timing)
+  290  OpenTelemetry      (Request tracing spans & W3C context propagation)
+  300  Prometheus Metrics (Exposes /metrics with route-template labels)
+  400  Security Headers   (OWASP nosniff, HSTS, X-Frame-Options, CSP)
+  500  CORS Safety        (Strict origin validation, refuses wildcard+creds)
+  600  Rate Limiting      (Per-IP window limits, memory or Redis backend)
+  700  Compression        (Gzip & Brotli response compression)
+       [ Your FastAPI App Code ]
 ```
 
-**Python:**
+<details>
+<summary><b>📖 Expand Complete Feature Matrix</b></summary>
 
+<br/>
+
+| Icon | Feature | Description | Default |
+|:---:|---|---|:---:|
+| 🆔 | **Request IDs** | `X-Request-ID` attached to every response, bound to async context for log correlation. | `On` |
+| 📋 | **Structured Logging** | Production JSON logs (Datadog/CloudWatch/Loki ready) or colorful console logs in dev. | `On` |
+| 🛡️ | **Security Headers** | `nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security`, `Referrer-Policy`. | `On` |
+| 🚨 | **Error Normalization** | [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) `problem+json` standard. 500 tracebacks hidden in prod. | `On` |
+| ❤️ | **Health Probes** | K8s endpoints: `/health` (liveness), `/live`, and `/ready` (aggregates plugin checks). | `On` |
+| 🌐 | **CORS Guard** | Prevents insecure wildcard credentials (`origins=["*"]` + `credentials=True` fails boot). | `Configured` |
+| 📦 | **Compression** | Automatic Gzip (and optional Brotli) compression for payloads > 500 bytes. | `On` |
+| 🚦 | **Rate Limiting** | Per-IP sliding limits (`100/minute`), returns `429 Too Many Requests` with `Retry-After`. | `Opt-in` |
+| 📊 | **Prometheus Metrics** | Scrapeable `/metrics` endpoint (request totals, duration histograms, in-flight gauges). | `Opt-in` |
+| 🗄️ | **Cache Service** | Injection-ready cache (`MemoryCache` or `RedisCache`) registered in app context. | `Opt-in` |
+| 🔭 | **OpenTelemetry** | Auto-instrumentation of HTTP requests with OTLP/Console exporters & W3C headers. | `Opt-in` |
+
+</details>
+
+---
+
+## 🩺 CLI — `prodkit doctor`
+
+Run static & runtime security audits against your app and get a **0–100 Production Score**:
+
+```bash
+prodkit doctor --app main:app
+```
+
+```text
+                     Production Readiness Audit
+   ┌───┬────────────────────────┬─────────────────────┬──────────────────────────┐
+   │ ✔ │ Security headers       │ nosniff, X-Frame... │                          │
+   │ ✔ │ Structured logging     │ json @ INFO         │                          │
+   │ ✔ │ Error normalization    │ 500s opaque         │                          │
+   │ ✔ │ Request IDs            │ enabled (header)    │                          │
+   │ ✔ │ Health probes          │ /health /ready      │                          │
+   │ ⚠ │ Rate limiting          │ memory backend      │ set backend="redis" ...  │
+   │ ⚠ │ Content-Security-Policy│ default-src missing │ set CSP for web apps     │
+   └───┴────────────────────────┴─────────────────────┴──────────────────────────┘
+   Production Score: 88 / 100   [ 2 Warning(s) ]
+```
+
+### 🚦 Gate CI/CD Builds
+Enforce production standards in GitHub Actions or GitLab CI:
+
+```bash
+# Fails CI build (exit code 1) if production readiness score falls below threshold
+prodkit doctor --app main:app --strict --min-score 90
+```
+
+<details>
+<summary><b>🛠️ More CLI Commands (<code>inspect</code>, <code>plugins</code>, <code>init</code>)</b></summary>
+
+<br/>
+
+```bash
+# View resolved configuration, active plugins, and middleware execution stack:
+prodkit inspect --app main:app
+
+# List all active plugins and their implemented lifecycle hooks:
+prodkit plugins --app main:app
+
+# Scaffold starter prodkit.toml configuration file:
+prodkit init --example
+```
+
+</details>
+
+---
+
+## 🎛️ Configuration
+
+ProdKit merges configuration across **4 priority layers** (highest wins):
+
+$$\text{Python Args} \longrightarrow \text{Environment Vars} \longrightarrow \text{\texttt{prodkit.toml}} \longrightarrow \text{Profile Defaults}$$
+
+<details open>
+<summary><b>⚙️ Choose Configuration Style (Click to tab)</b></summary>
+
+#### Option A: Python Arguments
 ```python
 Production(
     app,
     environment="production",
-    cors={"origins": ["https://app.example.com"]},   # dict = configure & enable
-    compression=False,                                # bool = toggle
-    security={"trusted_hosts": ["api.example.com"]},
-    rate_limit={"default": "100/minute"},             # opt-in per-IP limiting
+    cors={"origins": ["https://app.example.com"]},
+    rate_limit={"default": "100/minute", "backend": "redis"},
+    metrics=True,
+    tracing={"exporter": "otlp", "sample_rate": 0.2},
 )
 ```
 
-**Environment variables** (`__` descends into sections):
-
-```bash
-PRODKIT_ENVIRONMENT=production
-PRODKIT_LOGGING__LEVEL=WARNING
-PRODKIT_SECURITY__TRUSTED_HOSTS=api.example.com,admin.example.com
-```
-
-**`prodkit.toml`:**
-
+#### Option B: `prodkit.toml`
 ```toml
 [prodkit]
 environment = "production"
 
 [logging]
 level = "INFO"
-
-[cors]
-enabled = true
-origins = ["https://app.example.com"]
+format = "json"
 
 [rate_limit]
 enabled = true
 default = "100/minute"
+backend = "redis"
+
+[metrics]
+enabled = true
+path = "/metrics"
 ```
 
-### Fail-fast, refuse-unsafe
-
-Misconfiguration fails **at startup with a named key**, never silently:
-
-```text
-ProdKitConfigError: Invalid ProdKit configuration:
-  - logging.levle: Extra inputs are not permitted
-```
-
-And configurations that would weaken a production deployment are refused,
-not warned about:
-
-- `debug=True` in production
-- error responses that would leak tracebacks in production
-- CORS `origins=["*"]` combined with `allow_credentials=True`
-
-## Writing a Plugin
-
-```python
-from prodkit import Audit, Check, Plugin, Production
-
-class DatabasePlugin(Plugin):
-    name = "database"
-
-    async def startup(self, ctx):
-        self.pool = await create_pool(...)
-        ctx.registry.provide("db", self.pool)
-
-    async def shutdown(self, ctx):
-        await self.pool.close()
-
-    def checks(self, ctx):                     # runtime readiness → /ready
-        return [Check(name="database", passed=self.pool.is_alive())]
-
-    def doctor(self, ctx):                     # static audit → prodkit doctor
-        return [Audit(name="Database pool",
-                      status="ok", detail="connection pool configured")]
-
-Production(app, plugins=[DatabasePlugin()])
-```
-
-Your `checks()` result now shows up in `/ready` automatically, and your
-`doctor()` findings roll into the `prodkit doctor` score. Plugins can declare
-`requires = ("other-plugin",)` and the kernel activates them in dependency
-order — cycles and missing dependencies fail at boot.
-
-Middleware registered by plugins carries an explicit integer priority, so
-the middleware onion is always correctly ordered no matter what order
-plugins load in (request-id outermost, compression innermost).
-
-## CLI — `prodkit doctor`
-
-Install the CLI extra and audit any `Production`-configured app:
-
+#### Option C: Environment Variables (`__` for nested keys)
 ```bash
-pip install "prodkit[cli]"
-prodkit doctor --app main:app
+export PRODKIT_ENVIRONMENT=production
+export PRODKIT_LOGGING__LEVEL=WARNING
+export PRODKIT_RATE_LIMIT__BACKEND=redis
+export PRODKIT_METRICS__ENABLED=true
 ```
 
-```text
-              Production readiness
-  ┌───┬───────────────────────┬─────────────────────┬─────────────────────────┐
-  │ ✔ │ Security headers      │ nosniff, X-Frame ... │                         │
-  │ ✔ │ Structured logging    │ json @ INFO          │                         │
-  │ ✔ │ Error normalization   │ 500s opaque          │                         │
-  │ ⚠ │ Content-Security-Po.. │ not set              │ set a CSP to mitigate.. │
-  │ ⚠ │ Rate limiting         │ disabled             │ enable for public APIs  │
-  └───┴───────────────────────┴─────────────────────┴─────────────────────────┘
-  Production score: 88/100    2 warning(s)
-```
-
-Make it a CI quality gate — fail the build below a threshold:
-
-```bash
-prodkit doctor --app main:app --strict --min-score 90
-```
-
-Other commands:
-
-```bash
-prodkit inspect --app main:app   # resolved config, plugins, middleware order
-prodkit plugins --app main:app   # active plugins and the hooks each implements
-prodkit init --example           # scaffold prodkit.toml (+ starter main.py)
-```
-
-Every plugin contributes findings via its `doctor(ctx)` hook, so your own
-plugins score too.
-
-## Plays Nice With Your App
-
-- **Same app object.** Routes, dependencies, and existing middleware keep
-  working. Remove `Production(app)` and you have a plain FastAPI app again.
-- **Your lifespan survives.** ProdKit *composes* with an existing `lifespan`:
-  plugin startup → your lifespan → plugin shutdown (LIFO).
-- **Your headers win.** Security headers use set-if-absent semantics.
-- **Every feature can be turned off.** `Production(app, security=False, ...)`
-
-## Project Status
-
-**v0.3.0 — alpha.** Core kernel, eleven built-in plugins (metrics, cache, tracing,
-rate-limiting with Redis), the `prodkit doctor` CLI, strict mypy, CI across
-Python 3.10–3.13.
-
-Roadmap: ✅ `prodkit doctor` CLI + rate limiting (v0.2), ✅ Prometheus metrics +
-Redis backends + OpenTelemetry tracing (v0.3), Dockerfile/nginx/CI generators
-(v0.4), public plugin SDK (v0.5), auth helpers (v0.6), stable API (v1.0).
-Full details in [docs/ARCHITECTURE.md](https://github.com/Pushkarpant/PRODKIT/blob/main/docs/ARCHITECTURE.md).
-
-## Contributing
-
-Contributions welcome — see [CONTRIBUTING.md](https://github.com/Pushkarpant/PRODKIT/blob/main/CONTRIBUTING.md).
-Security reports: see [SECURITY.md](https://github.com/Pushkarpant/PRODKIT/blob/main/SECURITY.md) (never open a public issue).
-
-```bash
-git clone https://github.com/Pushkarpant/PRODKIT
-cd PRODKIT
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-pytest
-```
-
-## License
-
-[MIT](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)
-
-## Author
-
-**[Pushkar Pant](https://github.com/Pushkarpant)** — [pantpushkar4@gmail.com](mailto:pantpushkar4@gmail.com)
+</details>
 
 ---
 
+## 🔌 Writing a Custom Plugin
+
+All features in ProdKit (including built-ins) are plugins implementing the `Plugin` contract.
+
+```python
+from prodkit import Plugin, Check, Audit, Production
+
+
+class DatabaseHealthPlugin(Plugin):
+    name = "db-health"
+    requires = []  # Dependency ordering
+
+    async def startup(self, ctx):
+        # Async resource setup
+        ctx.registry.provide("db_pool", await connect_db())
+
+    async def shutdown(self, ctx):
+        pool = ctx.registry.get("db_pool")
+        await pool.close()
+
+    def checks(self, ctx):
+        # Feeds into K8s /ready probe
+        is_connected = ctx.registry.get("db_pool").is_active()
+        return [Check(name="database", passed=is_connected)]
+
+    def doctor(self, ctx):
+        # Feeds into `prodkit doctor` score
+        return [Audit(name="Database Connection", status="ok", detail="Pool initialized")]
+
+
+Production(app, plugins=[DatabaseHealthPlugin()])
+```
+
+---
+
+## 🛡️ Plays Nice With Your App
+
+- **Zero Lock-in**: Mutates/wraps the FastAPI instance. Remove `Production(app)` anytime to return to plain FastAPI.
+- **Lifespan Composition**: Your custom `@asynccontextmanager` lifespan is preserved and wrapped (Plugin startup $\to$ App lifespan $\to$ Plugin shutdown).
+- **Your Code Wins**: If your route explicitly sets a header or error handler, your application code takes precedence.
+
+---
+
+## 🗺️ Project Status & Roadmap
+
+| Version | Status | Highlights |
+|---|---|---|
+| **v0.1.0** | ✅ Released | Core kernel, security headers, JSON logs, RFC 9457 error normalization, `/health` |
+| **v0.2.0** | ✅ Released | `prodkit doctor` CLI, readiness score, in-memory rate limiting |
+| **v0.3.0** | ✅ **Current** | **Prometheus metrics, Redis backends, OpenTelemetry tracing, Cache service** |
+| **v0.4.0** | 🚧 Next | `prodkit generate` (Dockerfile, nginx, docker-compose, GitHub Actions CI) |
+| **v0.5.0** | 📅 Planned | Public Plugin SDK & Ecosystem (`prodkit-sentry`, entry-point discovery) |
+| **v1.0.0** | 🎯 Milestone | Frozen Public API, LTS release, Production case studies |
+
+---
+
+## 🤝 Contributing & License
+
+We welcome contributions! Please see [CONTRIBUTING.md](https://github.com/Pushkarpant/PRODKIT/blob/main/CONTRIBUTING.md) and [SECURITY.md](https://github.com/Pushkarpant/PRODKIT/blob/main/SECURITY.md).
+
+```bash
+git clone https://github.com/Pushkarpant/PRODKIT.git
+cd PRODKIT
+python -m venv .venv && source .venv/bin/activate  # on Windows: .venv\Scripts\activate
+pip install -e ".[dev,all]"
+pytest
+```
+
+Distributed under the **[MIT License](https://github.com/Pushkarpant/PRODKIT/blob/main/LICENSE)**.
+
+<br/>
+
+<div align="center">
+
+**Built with ❤️ by [Pushkar Pant](https://github.com/Pushkarpant)**
+
 *FastAPI builds APIs. ProdKit makes them production-ready.*
+
+</div>
